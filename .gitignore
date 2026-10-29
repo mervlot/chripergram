@@ -77,5 +77,53 @@ desktop.ini
 .local/
 .config/
 .upm/
-.cache/
-.replit.bak
+
+# ── Framework / hosting build caches ─────────
+.next/
+.turbo/
+.vercel/
+.gradle/
+
+# ── Mobile (Android / iOS) ───────────────────
+android/.cxx/
+android/app/build/
+ios/Pods/
+ios/build/
+*.apk
+*.aab
+
+# ── Vendored code ────────────────────────────
+vendor/
+
+# ── Large media (keep the repo small) ────────
+*.mp4
+*.MP4
+*.mkv
+*.mov
+*.avi
+*.webm
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+
+# ── Archives & disk images ───────────────────
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.iso
+*.img
+*.dmg
+
+# ── Design source files ──────────────────────
+*.psd
+*.ai
+*.sketch
+*.fig
+
+# ── Backups & temp files ─────────────────────
+*.bak
+*.tmp
+*.cache
