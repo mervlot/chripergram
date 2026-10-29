@@ -1,0 +1,53 @@
+{
+  "name": "murmur-desktop",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Chirpergram social network as a cross-platform desktop app (Electron).",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "local": "electron . --local",
+    "build:local-assets": "npm --prefix ../client run build:desktop && npm --prefix ../server run build",
+    "package": "electron-packager . Chirpergram --platform=win32 --arch=x64 --out=release --overwrite --ignore=\"(node_modules|release|\\.git|\\.cache)\"",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.0.1",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.murmur.desktop",
+    "productName": "Chirpergram",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "game-detection.js",
+      "loading.html",
+      "build/icon.png"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
+  }
+}

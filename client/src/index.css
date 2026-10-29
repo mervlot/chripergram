@@ -1,0 +1,252 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { color-scheme: dark; }
+}
+
+:root {
+  color-scheme: dark;
+  --font-sans: "Manrope", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --text-body: 0.9375rem;
+  --leading-body: 1.55;
+  --page: #07090b;
+  --surface: #0d1013;
+  --surface-raised: #12161a;
+  --surface-hover: #181d22;
+  --surface-overlay: rgba(9, 11, 13, 0.92);
+  --line: rgba(240, 244, 248, 0.085);
+  --line-strong: rgba(240, 244, 248, 0.14);
+  --ink: #f1f3f5;
+  --muted: #9299a2;
+  --subtle: #686f78;
+  --blue: #1e7ff0;
+  --success: #35c58b;
+  --warning: #e8ad4e;
+  --error: #f06b72;
+  --radius-control: 0.75rem;
+  --radius-card: 1rem;
+  --shadow-popover: 0 16px 40px rgba(0, 0, 0, 0.34);
+  --ease-ui: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration-fast: 140ms;
+}
+
+html {
+  background: var(--page);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  min-width: 0;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  margin: 0;
+  overflow-x: clip;
+  overscroll-behavior-y: none;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 { color: var(--ink); font-weight: 700; }
+
+::selection { background: rgba(30, 127, 240, 0.35); color: #fff; }
+
+a,
+button { touch-action: manipulation; }
+
+* { scrollbar-width: thin; scrollbar-color: #2c2e35 transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: #2c2e35; border-radius: 8px; }
+
+/* Restrained overlay treatment for menus, sheets and docked controls only. */
+.glass-surface {
+  border-color: var(--line-strong);
+  background-color: var(--surface-overlay);
+  box-shadow: var(--shadow-popover);
+}
+
+.glass-edge-top {
+  border-width: 0 0 1px;
+  box-shadow: none;
+}
+
+.glass-edge-bottom {
+  border-width: 1px 0 0;
+  box-shadow: none;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-surface { background-color: var(--surface); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer base {
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--page), 0 0 0 4px rgba(30, 127, 240, 0.8);
+  }
+}
+
+@layer components {
+  .card {
+    background: transparent;
+    border-bottom: 1px solid var(--line);
+  }
+  .panel {
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .input {
+    @apply min-h-11 w-full px-3 py-2.5 outline-none transition duration-150 placeholder:text-stone-500;
+    border-radius: var(--radius-control);
+    color: var(--ink);
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    box-shadow: none;
+  }
+  .input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(30, 127, 240, 0.16);
+  }
+
+  .search-field {
+    @apply flex min-h-11 items-center gap-2 px-3 py-2 transition-colors;
+    border-radius: var(--radius-control);
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+  }
+  .search-field:focus-within {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(30, 127, 240, 0.14);
+  }
+
+  /* Invisible 44px touch target around a 36px control. Lives in the components
+     layer so a caller's `absolute` / `fixed` utility still wins over `relative`. */
+  .hit-area { position: relative; }
+  .hit-area::after { content: ''; position: absolute; inset: -4px; }
+
+  .post-card { @apply relative transition-colors duration-150; }
+  .post-card:hover { background: rgba(255, 255, 255, 0.018); }
+  .post-card:active { background: rgba(255, 255, 255, 0.03); }
+
+  .mobile-safe-pad { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
+  /* Room for the fixed five-tab bar plus the device home-indicator inset. */
+  .mobile-content-pad { padding-bottom: calc(env(safe-area-inset-bottom) + 4.5rem); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
+
+  /* Auth screens */
+  .auth-input {
+    @apply w-full px-4 text-base outline-none transition duration-150 placeholder:text-stone-500;
+    min-height: 3rem;
+    border-radius: var(--radius-control);
+    color: var(--ink);
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+  }
+  .auth-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30, 127, 240, 0.16); }
+}
+
+.settings-page { padding-bottom: 0.5rem; }
+.settings-page > .card {
+  margin: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+.settings-page > .card:first-of-type { margin-top: 0; }
+.settings-page > .card:last-child { margin-bottom: 1rem; }
+.settings-page > .card h2 { letter-spacing: -0.02em; }
+.settings-page > .card p { overflow-wrap: anywhere; }
+
+.notification-row { transition: background-color 150ms var(--ease-ui); }
+.notification-row.is-unread {
+  background: rgba(30, 127, 240, 0.055);
+  border-left: 2px solid var(--blue);
+}
+
+.conversation-row { border-bottom: 1px solid var(--line); }
+.conversation-row[aria-current='page'] { background: rgba(255, 255, 255, 0.045); }
+
+.profile-cover-empty { background: #11161b; }
+
+@media (max-width: 420px) {
+  .settings-page > .card { margin-right: 0.75rem; margin-left: 0.75rem; }
+}
+
+/* Product simplification: calls and game invites are no longer part of the
+   primary Chirpergram experience. Keeping the dormant code temporarily avoids a
+   risky backend migration while removing these actions from the interface. */
+button[aria-label='Start voice call'],
+button[aria-label='Start video call'],
+button[aria-label='Create game invite'] {
+  display: none !important;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #1a1b20 25%, #24262c 50%, #1a1b20 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Post cards open their post through ONE real link stretched behind the content
+   (.post-card-link, rendered by PostCard). Non-interactive content lets clicks
+   fall through to that link; every control keeps its own pointer events, so
+   like / repost / bookmark / menus / polls / media / profile links work without
+   any click-bubbling tricks. */
+.post-card { isolation: isolate; }
+.post-card > .post-card-link { position: absolute; inset: 0; z-index: -1; border-radius: inherit; }
+.post-card > :not(.post-card-link) { pointer-events: none; }
+.post-card :is(a, button, video, audio, input, textarea, select, summary, label, [role='button'], [role='link'], [data-no-open]) {
+  pointer-events: auto;
+}
+
+/* Modal / sheet that tracks the *visible* viewport (set from JS via visualViewport),
+   so the on-screen keyboard never covers or detaches the sheet. */
+.vv-fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--vv-top, 0px);
+  height: var(--vv-height, 100dvh);
+}

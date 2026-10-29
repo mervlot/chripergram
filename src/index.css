@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { color-scheme: dark; }
+}
+
+:root {
+  --page: #000000;
+  --surface: #141519;
+  --surface-strong: #1a1b20;
+  --line: rgba(255, 255, 255, 0.07);
+  --ink: #d7d9de;
+  --blue: #1e7ff0;
+}
+
+html {
+  background: var(--page);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  min-width: 0;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  margin: 0;
+  overflow-x: clip;
+  overscroll-behavior-y: none;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 { color: #e6e8ec; font-weight: 600; }
+
+::selection { background: rgba(30, 127, 240, 0.35); color: #fff; }
+
+a,
+button { touch-action: manipulation; }
+
+* { scrollbar-width: thin; scrollbar-color: #2c2e35 transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: #2c2e35; border-radius: 8px; }
+
+/* Glass fallback. `.glass-surface` marks every canonical glass surface (see
+   GLASS in lib/ui.ts). Without backdrop-filter support, translucent black over
+   busy content would be unreadable, so swap in a near-opaque solid. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-surface { background-color: rgba(14, 15, 18, 0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer base {
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #050506, 0 0 0 4px rgba(30, 127, 240, 0.8);
+  }
+}
+
+@layer components {
+  .card {
+    background: transparent;
+    border-bottom: 1px solid var(--line);
+  }
+  .panel {
+    border-radius: 1rem;
+    background: var(--surface-strong);
+    border: 1px solid var(--line);
+    box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.9);
+  }
+
+  .input {
+    @apply min-h-11 w-full rounded-xl px-3 py-2.5 text-stone-200 outline-none transition duration-150 placeholder:text-stone-600;
+    background: #0d0e11;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+  }
+  .input:focus { border-color: #1e7ff0; box-shadow: inset 0 2px 4px rgba(0,0,0,.6), 0 0 0 3px rgba(30,127,240,.15); }
+
+  .search-field {
+    @apply flex min-h-11 items-center gap-2 rounded-xl px-3 py-2 transition-colors;
+    background: #0d0e11;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+  }
+  .search-field:focus-within { border-color: #1e7ff0; }
+
+  /* Invisible 44px touch target around a 36px control. Lives in the components
+     layer so a caller's `absolute` / `fixed` utility still wins over `relative`. */
+  .hit-area { position: relative; }
+  .hit-area::after { content: ''; position: absolute; inset: -4px; }
+
+  .post-card { @apply relative transition-colors duration-150; }
+  .post-card:hover { background: rgba(255, 255, 255, 0.02); }
+  .post-card:active { background: rgba(255, 255, 255, 0.035); }
+
+  .mobile-safe-pad { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
+  /* Room for the fixed bottom tab bar (3.5rem) + the home-indicator inset. */
+  .mobile-content-pad { padding-bottom: calc(env(safe-area-inset-bottom) + 4.5rem); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
+
+  /* Auth screens */
+  .auth-input {
+    @apply w-full rounded-xl px-4 text-base text-white outline-none transition duration-150 placeholder:text-stone-600;
+    min-height: 3rem;
+    background: #0d0e11;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .auth-input:focus { border-color: #1e7ff0; box-shadow: 0 0 0 3px rgba(30, 127, 240, 0.18); }
+}
+
+/* Product simplification: calls and game invites are no longer part of the
+   primary Chirpergram experience. Keeping the dormant code temporarily avoids a
+   risky backend migration while removing these actions from the interface. */
+button[aria-label='Start voice call'],
+button[aria-label='Start video call'],
+button[aria-label='Create game invite'] {
+  display: none !important;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #1a1b20 25%, #24262c 50%, #1a1b20 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Post cards open their post through ONE real link stretched behind the content
+   (.post-card-link, rendered by PostCard). Non-interactive content lets clicks
+   fall through to that link; every control keeps its own pointer events, so
+   like / repost / bookmark / menus / polls / media / profile links work without
+   any click-bubbling tricks. */
+.post-card { isolation: isolate; }
+.post-card > .post-card-link { position: absolute; inset: 0; z-index: -1; border-radius: inherit; }
+.post-card > :not(.post-card-link) { pointer-events: none; }
+.post-card :is(a, button, video, audio, input, textarea, select, summary, label, [role='button'], [role='link'], [data-no-open]) {
+  pointer-events: auto;
+}
+
+/* Modal / sheet that tracks the *visible* viewport (set from JS via visualViewport),
+   so the on-screen keyboard never covers or detaches the sheet. */
+.vv-fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--vv-top, 0px);
+  height: var(--vv-height, 100dvh);
+}

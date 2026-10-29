@@ -1,0 +1,81 @@
+# ── Dependencies ─────────────────────────────
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+jspm_packages/
+
+# ── Build output ─────────────────────────────
+dist/
+build/
+out/
+.vite/
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+coverage/
+.nyc_output/
+
+# Desktop (Electron) packaging output
+desktop/release/
+desktop/release-*/
+
+# Files emitted by `tsc -b` next to client/vite.config.ts
+client/vite.config.js
+client/vite.config.d.ts
+
+# ── Environment & secrets ────────────────────
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+
+# ── Database (SQLite – contains real data) ───
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
+*.sqlite3
+data/*.db*
+server/data/*.db*
+
+# ── User uploads (keep the folder only) ──────
+server/uploads/*
+!server/uploads/.gitkeep
+
+# ── Logs ─────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── OS junk ──────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp
+*.swo
+.fuse_hidden*
+.nfs*
+
+# ── Editors / IDEs ───────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.iml
+
+# ── Tooling / AI / platform scratch ──────────
+.claude/
+.dsconfig/
+/generated-artifacts/
+.local/
+.config/
+.upm/
+.cache/
+.replit.bak

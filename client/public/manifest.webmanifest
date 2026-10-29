@@ -1,0 +1,20 @@
+{
+  "name": "Chirpergram — where the world thinks out loud",
+  "short_name": "Chirpergram",
+  "description": "A real-time social network: posts, replies, reposts, polls, communities and direct messages.",
+  "start_url": "/home",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "categories": ["social", "news"],
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

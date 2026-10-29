@@ -1,0 +1,38 @@
+# Render Blueprint for Chirpergram: React, Express, Socket.io, and built-in SQLite.
+# SQLite data is ephemeral until SQLITE_PATH is placed on a persistent disk.
+
+services:
+  - type: web
+    name: murmur-social
+    runtime: node
+    rootDir: server
+    plan: free
+    region: singapore
+    autoDeploy: true
+    healthCheckPath: /api/health
+
+    buildCommand: >-
+      cd ../client &&
+      npm ci --include=dev &&
+      npm run build &&
+      cd ../server &&
+      npm ci --include=dev &&
+      npm run build
+
+    startCommand: node dist/index.js
+
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
+
+      - key: NODE_ENV
+        value: production
+
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+      - key: CLOUDINARY_FOLDER
+        value: murmur

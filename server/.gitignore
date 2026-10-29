@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+uploads/*
+!uploads/.gitkeep
+*.log
+# Local SQLite database (contains real data — never commit)
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/*.db-journal
