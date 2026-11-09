@@ -185,7 +185,7 @@ export async function storeUploadedFile(file: Express.Multer.File): Promise<stri
   }
 
   if (!file.filename) throw new Error('Uploaded file is missing its local filename');
-  return `${env.apiUrl}${uploadPublicPath}/${file.filename}`;
+  return `${uploadPublicPath}/${file.filename}`;
 }
 
 export async function serveStoredUpload(

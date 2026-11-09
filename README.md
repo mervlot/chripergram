@@ -168,6 +168,8 @@ npm run dev                   # http://localhost:5173
 
 Open **http://localhost:5000** and create an account to get started. The Vite
 server proxies API and Socket.io requests to the backend.
+Unhandled API and startup errors in development are also appended to
+`server/logs/dev-errors.log`; production does not write this local log.
 
 > **Password reset in dev:** `POST /api/auth/forgot-password` returns the
 > six-digit reset code directly in the JSON. Production sends it by SMTP.
@@ -360,6 +362,7 @@ automatically. Existing local files are left unchanged.
 2. **Gmail sending:** turn on 2-Step Verification, create an *App password* (Google Account → Security → App passwords) and put it in `SMTP_PASS`; set `SMTP_USER` and `MAIL_FROM` to the Gmail address. Your normal Gmail password will not work. (Alternative: the Apps Script webhook in `google-apps-script/Code.gs`.)
 3. In development with no mail configured, set `LOG_OTP_TO_CONSOLE=1` and codes print in the server console. Codes are never returned in API responses.
 4. **Production requires** `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`: two different random strings of 32+ characters. The server refuses to start otherwise.
+   The example file leaves secrets blank; development uses local fallback keys, while production must use unique generated values.
 5. Fill in `LEGAL_ENTITY_NAME`, `LEGAL_POSTAL_ADDRESS`, `SUPPORT_EMAIL`, `PRIVACY_EMAIL` (server) and the `VITE_LEGAL_*` values (client). They appear in email footers and in the Terms/Privacy pages. Anything left in `[brackets]` is a placeholder.
 6. When you change the legal text materially, bump `LEGAL_VERSION` (`server/src/config/legal.ts`) and `LEGAL.version` (`client/src/lib/legal.ts`).
 

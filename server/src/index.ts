@@ -3,6 +3,7 @@ import { createApp } from './app';
 import { env } from './config/env';
 import { initSockets } from './sockets';
 import { db } from './config/db';
+import { logDevelopmentError } from './utils/devErrorLog';
 
 async function main() {
   const app = createApp();
@@ -28,6 +29,7 @@ async function main() {
 }
 
 main().catch((err) => {
+  void logDevelopmentError(err, 'Fatal startup error');
   // eslint-disable-next-line no-console
   console.error('Fatal startup error:', err);
   process.exit(1);

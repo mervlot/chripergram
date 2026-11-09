@@ -11,9 +11,10 @@ import type { Post, Trend } from '../types';
 export function Explore() {
   const navigate = useNavigate();
   const [q, setQ] = useState('');
-  const { data: trends } = useQuery({
+  const { data: trends, isError: trendsFailed, refetch: refetchTrends } = useQuery({
     queryKey: ['trends'],
     queryFn: async () => (await api.get<{ trends: Trend[] }>('/trends')).data.trends,
+    staleTime: 60_000,
   });
 
   return (
@@ -27,21 +28,37 @@ export function Explore() {
           className="px-4 pb-3"
         >
           <div className="search-field">
-            <Search size={17} className="text-stone-500" />
+            <Search size={17} aria-hidden="true" className="shrink-0 text-stone-500" />
             <input
+              type="search"
+              aria-label="Search Chirpergram"
               value={q}
               onChange={(event) => setQ(event.target.value)}
+              maxLength={100}
               placeholder="Search Chirpergram"
-              className="w-full bg-transparent text-sm font-semibold outline-none placeholder:text-stone-500"
+              className="min-w-0 w-full bg-transparent text-sm font-semibold outline-none placeholder:text-stone-500"
             />
           </div>
         </form>
       </PageHeader>
 
+      {trendsFailed && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] px-4 py-3">
+          <p className="min-w-0 flex-1 text-sm text-stone-400">Trending topics couldn’t be loaded.</p>
+          <button
+            type="button"
+            onClick={() => void refetchTrends()}
+            className="shrink-0 text-sm font-semibold text-brand hover:underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
       {!!trends?.length && (
-        <section className="border-b border-white/[0.08] px-4 py-4">
+        <section aria-labelledby="trending-heading" className="border-b border-white/[0.08] px-4 py-4">
           <div className="mb-2 flex items-end justify-between border-t border-white/15 pt-3">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Trending now</h2>
+            <h2 id="trending-heading" className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">Trending now</h2>
             <span className="text-[11px] font-semibold tracking-wide text-stone-400">Chirpergram</span>
           </div>
 
@@ -49,11 +66,11 @@ export function Explore() {
             <Link
               key={trend.tag}
               to={`/hashtag/${trend.tag}`}
-              className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 border-b border-stone-300 py-3 last:border-b-0 transition-colors hover:text-brand dark:border-white/10"
+              className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 border-b border-white/[0.08] py-3 last:border-b-0 transition-colors hover:text-brand"
             >
               <span className="text-xs font-semibold tabular-nums text-stone-400">{String(index + 1).padStart(2, '0')}</span>
-              <span className="font-semibold">#{trend.tag}</span>
-              <span className="text-xs font-semibold tabular-nums text-stone-500">{compactNumber(trend.count)} posts</span>
+              <span className="min-w-0 truncate font-semibold">#{trend.tag}</span>
+              <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-stone-500">{compactNumber(trend.count)} posts</span>
             </Link>
           ))}
         </section>

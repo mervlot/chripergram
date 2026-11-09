@@ -2,7 +2,6 @@
   "compilerOptions": {
     "target": "ES2021",
     "module": "CommonJS",
-    "moduleResolution": "node",
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
@@ -12,11 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "sourceMap": true,
-    "declaration": false,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "declaration": false
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

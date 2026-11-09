@@ -1,9 +1,15 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
 function normalizeOrigin(value: string): string {
-  const trimmed = value.trim().replace(/\/+$/, '');
+  const trimmed = value.trim().replace(/\/+$/, "");
+  if (!trimmed) return "";
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `https://${trimmed}`;
+
+  const isLocalHost =
+    /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/i.test(
+      trimmed,
+    );
+  return `${isLocalHost ? "http" : "https"}://${trimmed}`;
 }
 
 // An explicit VITE_API_URL wins. Otherwise use this page's origin: Vite proxies
@@ -11,15 +17,37 @@ function normalizeOrigin(value: string): string {
 // Electron shell serve the API from the same origin.
 const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 const API_ORIGIN = normalizeOrigin(
-  configuredApiUrl
-    ? configuredApiUrl
-    : window.location.origin,
+  configuredApiUrl ? configuredApiUrl : window.location.origin,
 );
 
 export const api = axios.create({
   baseURL: `${API_ORIGIN}/api`,
   withCredentials: true, // send the refresh-token cookie
 });
+
+function normalizeLocalUploadUrls(value: unknown, field = ''): unknown {
+  if (typeof value === 'string') {
+    if (field.toLowerCase() === 'url' || field.toLowerCase().endsWith('url')) {
+      return value.replace(
+        /^https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(?::\d+)?(\/uploads\/.*)$/i,
+        '$1',
+      );
+    }
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeLocalUploadUrls(item, field));
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        normalizeLocalUploadUrls(item, key),
+      ]),
+    );
+  }
+  return value;
+}
 
 // Access token is kept in memory only (never localStorage) to reduce XSS risk.
 let accessToken: string | null = null;
@@ -28,46 +56,54 @@ let authVersion = 0;
 
 function tokenExpiryMs(token: string): number | null {
   try {
-    const encoded = token.split('.')[1];
+    const encoded = token.split(".")[1];
     if (!encoded) return null;
-    const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+    const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
     const payload = JSON.parse(atob(padded)) as { exp?: unknown };
-    return typeof payload.exp === 'number' ? payload.exp * 1000 : null;
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
   } catch {
     return null;
   }
 }
 
 export function isTerminalAuthError(error: unknown): boolean {
-  return axios.isAxiosError(error) && [401, 403].includes(error.response?.status ?? 0);
+  return (
+    axios.isAxiosError(error) &&
+    [401, 403].includes(error.response?.status ?? 0)
+  );
 }
 
 export function isTransientAuthError(error: unknown): boolean {
   if (!axios.isAxiosError(error)) return false;
   const status = error.response?.status;
-  return status === undefined || status === 408 || status === 429 || status >= 500;
+  return (
+    status === undefined || status === 408 || status === 429 || status >= 500
+  );
 }
 
 function scheduleRefresh(token: string, delayMs: number) {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   if (refreshTimer !== null) window.clearTimeout(refreshTimer);
-  refreshTimer = window.setTimeout(() => {
-    refreshTimer = null;
-    void refreshAccessToken().catch((error: unknown) => {
-      if (isTerminalAuthError(error)) {
-        onAuthFailure();
-      } else if (accessToken === token) {
-        // A temporary API/network failure should not sign the user out.
-        scheduleRefresh(token, 30_000);
-      }
-    });
-  }, Math.max(0, delayMs));
+  refreshTimer = window.setTimeout(
+    () => {
+      refreshTimer = null;
+      void refreshAccessToken().catch((error: unknown) => {
+        if (isTerminalAuthError(error)) {
+          onAuthFailure();
+        } else if (accessToken === token) {
+          // A temporary API/network failure should not sign the user out.
+          scheduleRefresh(token, 30_000);
+        }
+      });
+    },
+    Math.max(0, delayMs),
+  );
 }
 
 export const setAccessToken = (token: string | null) => {
   authVersion += 1;
-  if (refreshTimer !== null && typeof window !== 'undefined') {
+  if (refreshTimer !== null && typeof window !== "undefined") {
     window.clearTimeout(refreshTimer);
     refreshTimer = null;
   }
@@ -104,17 +140,24 @@ async function refreshAccessToken(): Promise<string> {
   if (!refreshing) {
     const requestVersion = authVersion;
     const sendRefreshRequest = () =>
-      axios.post<{ accessToken: string }>(`${API_ORIGIN}/api/auth/refresh`, null, { withCredentials: true });
+      axios.post<{ accessToken: string }>(
+        `${API_ORIGIN}/api/auth/refresh`,
+        null,
+        { withCredentials: true },
+      );
     const request = Promise.resolve(
-      typeof navigator !== 'undefined' && navigator.locks?.request
-        ? navigator.locks.request('social-network-auth-refresh', sendRefreshRequest)
+      typeof navigator !== "undefined" && navigator.locks?.request
+        ? navigator.locks.request(
+            "social-network-auth-refresh",
+            sendRefreshRequest,
+          )
         : sendRefreshRequest(),
     );
 
     refreshing = request
       .then((res) => {
         if (requestVersion !== authVersion) {
-          throw new Error('Authentication state changed while refreshing');
+          throw new Error("Authentication state changed while refreshing");
         }
         const token = res.data.accessToken;
         setAccessToken(token);
@@ -129,22 +172,37 @@ async function refreshAccessToken(): Promise<string> {
 }
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    if (import.meta.env.DEV) {
+      res.data = normalizeLocalUploadUrls(res.data) as typeof res.data;
+    }
+    return res;
+  },
   async (error: AxiosError) => {
-    const original = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
-    const url = original?.url ?? '';
+    const original = error.config as
+      | (AxiosRequestConfig & { _retry?: boolean })
+      | undefined;
+    const url = original?.url ?? "";
 
     const isAuthRoute =
-      url.includes('/auth/login') ||
-      url.includes('/auth/refresh') ||
-      url.includes('/auth/register') ||
-      url.includes('/auth/logout');
+      url.includes("/auth/login") ||
+      url.includes("/auth/refresh") ||
+      url.includes("/auth/register") ||
+      url.includes("/auth/logout");
 
-    if (error.response?.status === 401 && original && !original._retry && !isAuthRoute) {
+    if (
+      error.response?.status === 401 &&
+      original &&
+      !original._retry &&
+      !isAuthRoute
+    ) {
       original._retry = true;
       try {
         const token = await refreshAccessToken();
-        original.headers = { ...original.headers, Authorization: `Bearer ${token}` };
+        original.headers = {
+          ...original.headers,
+          Authorization: `Bearer ${token}`,
+        };
         return api(original);
       } catch (refreshError) {
         if (isTerminalAuthError(refreshError)) onAuthFailure();
@@ -157,10 +215,18 @@ api.interceptors.response.use(
 // Normalises an API error into a human-readable message. When the backend
 // returns field-level validation details, surface the first specific message
 // (e.g. "Password must be at least 8 characters") instead of the generic one.
-export function errorMessage(err: unknown, fallback = 'Something went wrong'): string {
+export function errorMessage(
+  err: unknown,
+  fallback = "Something went wrong",
+): string {
   if (axios.isAxiosError(err)) {
     const data = err.response?.data as
-      | { error?: { message?: string; details?: Array<{ path?: string; message?: string }> } }
+      | {
+          error?: {
+            message?: string;
+            details?: Array<{ path?: string; message?: string }>;
+          };
+        }
       | undefined;
     const detail = data?.error?.details?.[0]?.message;
     if (detail) return detail;

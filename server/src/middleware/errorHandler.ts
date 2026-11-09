@@ -3,16 +3,19 @@ import { ZodError } from 'zod';
 import { MulterError } from 'multer';
 import { env } from '../config/env';
 import { ApiError } from '../utils/apiError';
+import { logDevelopmentError } from '../utils/devErrorLog';
 
 // Central error translator. Anything thrown in the request lifecycle ends up
 // here and is mapped to a clean JSON shape: { error: { message, details? } }.
 export function errorHandler(
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction,
 ) {
+  void logDevelopmentError(err, `${req.method} ${req.path}`);
+
   if (err instanceof ApiError) {
     return res.status(err.status).json({ error: { message: err.message, details: err.details } });
   }
